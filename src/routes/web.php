@@ -19,22 +19,35 @@ use Illuminate\Support\Facades\Auth;
 |
 */
 
-Route::get('/', [ContactController::class, 'index'])->name("rewrite");
+// 入力画面（PG01）
+Route::get('/', [ContactController::class, 'index'])->name('rewrite');
 
+// 確認画面（PG02）
 Route::post('/confirm', [ContactController::class, 'confirm']);
 
-Route::post('/thanks', [ContactController::class, 'store']);
-
-Route::get('/register', [AuthController::class, 'registerView']);
-
-Route::get('/login', [AuthController::class, 'loginView']);
-
-Route::middleware('auth')->group(function () {
-    Route::get('/admin', [ContactController::class, 'admin']);
+// 保存 → サンクス（PG03）
+Route::post('/store', [ContactController::class, 'store']);
+Route::get('/thanks', function () {
+    return view('thanks');
 });
 
-Route::get('/admin/search', [ContactController::class, 'search']);
+// 管理画面（PG04）
+Route::get('/admin', [ContactController::class, 'admin']);
 
-Route::post('/admin/delete', [ContactController::class, 'delete']);
+// 検索（PG05）
+Route::get('/search', [ContactController::class, 'search']);
 
-Route::get('/admin/csv-download', [CsvDownloadController::class, 'downloadCsv']);
+// 検索リセット（PG06）
+Route::get('/reset', [ContactController::class, 'reset']);
+
+// 削除（PG07）
+Route::post('/delete', [ContactController::class, 'delete']);
+
+// ユーザ登録（PG08）
+Route::get('/register', [AuthController::class, 'registerView']);
+
+// ログイン（PG09）
+Route::get('/login', [AuthController::class, 'loginView']);
+
+// エクスポート（PG11）
+Route::get('/export', [CsvDownloadController::class, 'downloadCsv']);

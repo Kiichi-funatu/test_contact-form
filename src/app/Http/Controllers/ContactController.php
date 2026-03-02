@@ -7,143 +7,129 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Http\Requests\ContactRequest;
 use Normalizer;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Response;
 
 class ContactController extends Controller
 {
     public function index()
     {
-        return view('index');
+        // カテゴリー一覧を取得（仕様書 FN002）
+        $categories = Category::all();
+        return view('index', compact('categories'));
     }
 
     public function confirm(ContactRequest $request)
     {
         $contact = $request->all();
 
-        $frontTel = implode(",", $request->only(['front-tel']));
-        $middleTel = implode(",", $request->only(['middle-tel']));
-        $backTel = implode(",", $request->only(['back-tel']));
-        $entireTel = $frontTel . $middleTel . $backTel;
+        // 氏名（表示用）
+        $fullName = $request->last_name . ' ' . $request->first_name;
 
-        $lastName = implode(",", $request->only(['last_name']));
-        $firstName = implode(",", $request->only(['first_name']));
-        $fullName = $lastName . " " . $firstName;
+        // 電話番号（表示用）
+        $entireTel = $request->input('front-tel')
+                    . $request->input('middle-tel')
+                    . $request->input('back-tel');
 
-        return view('confirm', ['contact' => $contact, 'entireTel' => $entireTel, 'fullName' => $fullName]);
+        // 性別（表示用）
+        $genderText = [
+            1 => '男性',
+            2 => '女性',
+            3 => 'その他'
+        ][$request->gender];
+
+        // カテゴリー名（表示用）
+        $category = Category::find($request->category_id);
+
+        return view('confirm', [
+            'contact' => $contact,
+            'fullName' => $fullName,
+            'entireTel' => $entireTel,
+            'genderText' => $genderText,
+            'categoryName' => $category->content
+        ]);
     }
 
     public function store(Request $request)
     {
+        // 修正ボタン
         if ($request->get('action') === 'modify') {
-            return redirect()->route('rewrite')->withInput();
+            return redirect('/')->withInput();
         }
 
-        $contact = $request->only([
-            'category_id',
-            'first_name',
-            'last_name',
-            'gender',
-            'email',
-            'tel',
-            'address',
-            'building',
-            'detail',
-        ]);
+        // 電話番号を結合（仕様書 FN001）
+        $tel = $request->input('front-tel')
+             . $request->input('middle-tel')
+             . $request->input('back-tel');
 
-        $genderType = implode(",", $request->only('gender'));
-        if ($genderType == "男性") {
-            $contact['gender'] = 1;
-        } elseif ($genderType == "女性") {
-            $contact['gender'] = 2;
-        } elseif ($genderType == "その他") {
-            $contact['gender'] = 3;
-        }
-
-        $categoryType = implode(",", $request->only(['category_id']));
-        if ($categoryType == "商品のお届けについて") {
-            $contact['category_id'] = 1;
-        } elseif ($categoryType == "商品の交換について") {
-            $contact['category_id'] = 2;
-        } elseif ($categoryType == "商品トラブル") {
-            $contact['category_id'] = 3;
-        } elseif ($categoryType == "ショップへのお問い合わせ") {
-            $contact['category_id'] = 4;
-        } elseif ($categoryType == "その他") {
-            $contact['category_id'] = 5;
-        }
+        // 保存データ（hidden で送られてきた値）
+        $contact = [
+            'category_id' => $request->category_id,
+            'first_name'  => $request->first_name,
+            'last_name'   => $request->last_name,
+            'gender'      => $request->gender,
+            'email'       => $request->email,
+            'tel'         => $tel,
+            'address'     => $request->address,
+            'building'    => $request->building,
+            'detail'      => $request->detail,
+        ];
 
         Contact::create($contact);
+
         return view('thanks');
     }
 
     public function admin()
     {
-        $contacts = Contact::Paginate(10);
+        $contacts = Contact::paginate(7);
 
-        for ($i = 0; $i < count($contacts); $i++) {
-            $gender_type = $contacts[$i]['gender'];
-            if ($gender_type == 1) {
-                $contacts[$i]['gender'] = "男性";
-            } elseif ($gender_type == 2) {
-                $contacts[$i]['gender'] = "女性";
-            } elseif ($gender_type == 3) {
-                $contacts[$i]['gender'] = "その他";
-            }
+        foreach ($contacts as $contact) {
+            $contact->gender = ['','男性','女性','その他'][$contact->gender];
         }
-        return view('admin', ['contacts' => $contacts]);
+
+        return view('admin', compact('contacts'));
     }
 
     public function search(Request $request)
     {
         $query = Contact::query();
-        $contacts = $request->all();
-        $model = new Contact();
-        $columnsCount = count($model->getConnection()->getSchemaBuilder()->getColumnListing($model->getTable()));
 
-        $name_email_filter = $request->name_email_filter;
-        $gender_dropdown = $request->gender_dropdown;
-        $category_dropdown = $request->category_dropdown;
-        $date_calendar = $request->date_calendar;
+        // 名前（姓・名・フルネーム）
+        if ($request->filled('name_email_filter')) {
+            $filter = Normalizer::normalize($request->name_email_filter, Normalizer::FORM_C);
 
-        if (!empty($name_email_filter)) {
-            $normalized_filter = Normalizer::normalize($name_email_filter, Normalizer::FORM_C);
-
-            $query->where(function ($query) use ($normalized_filter) {
-                $query->where(Contact::raw("CONCAT(last_name,first_name)"), 'like', '%' . $normalized_filter . '%');
-            })
-            ->orWhere('email', 'like', '%' . $normalized_filter . '%');
-        }
-        if (!empty($gender_dropdown)) {
-            $query->where('gender', $gender_dropdown);
-        }
-        if (!empty($category_dropdown)) {
-            $query->where('category_id', $category_dropdown);
-        }
-        if (!empty($date_calendar)) {
-            $query->whereDate('created_at', '=', $date_calendar);
+            $query->where(function ($q) use ($filter) {
+                $q->whereRaw("CONCAT(last_name, first_name) LIKE ?", ["%{$filter}%"])
+                  ->orWhere('email', 'like', "%{$filter}%");
+            });
         }
 
-
-
-        $contacts = $query->Paginate(10);
-
-        if (!empty($contacts)) {
-            for ($i = 0; $i < $columnsCount; $i++) {
-                if (isset($contacts[$i]['gender'])) {
-                    $gender_type = $contacts[$i]['gender'];
-                    if ($gender_type == 1) {
-                        $contacts[$i]['gender'] = "男性";
-                    } elseif ($gender_type == 2) {
-                        $contacts[$i]['gender'] = "女性";
-                    } elseif ($gender_type == 3) {
-                        $contacts[$i]['gender'] = "その他";
-                    }
-                }
-            }
+        // 性別
+        if ($request->filled('gender_dropdown')) {
+            $query->where('gender', $request->gender_dropdown);
         }
 
-        return view('admin', ['contacts' => $contacts]);
+        // カテゴリー
+        if ($request->filled('category_dropdown')) {
+            $query->where('category_id', $request->category_dropdown);
+        }
+
+        // 日付
+        if ($request->filled('date_calendar')) {
+            $query->whereDate('created_at', $request->date_calendar);
+        }
+
+        $contacts = $query->paginate(7);
+
+        foreach ($contacts as $contact) {
+            $contact->gender = ['','男性','女性','その他'][$contact->gender];
+        }
+
+        return view('admin', compact('contacts'));
+    }
+
+    public function reset()
+    {
+        return redirect('/admin');
     }
 
     public function delete(Request $request)

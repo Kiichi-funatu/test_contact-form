@@ -17,7 +17,7 @@
 @section('content')
 <h1 class="page-title">Admin</h1>
 <div class="contains">
-    <form action="/admin/search" method="get">
+    <form action="/search" method="get">
         @csrf
         <div class="search-form">
             <div class="name-email">
@@ -50,7 +50,7 @@
     </form>
     <div class="contacts-table">
         <div class="above-table">
-            <form action="/admin/csv-download" method="get">
+            <form action="/export" method="get">
                 @csrf
                 <button type="submit" class="export">エクスポート</button>
             </form>
@@ -128,7 +128,7 @@
                 </tr>
             </table>
             <div class="delete">
-                <form action="/admin/delete" method="post">
+                <form action="/delete" method="post">
                     @csrf
                     <input name="id" type="hidden" value="" class="delete-id">
                     <button class="delete-button" type="submit">削除</button>

@@ -12,42 +12,53 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CsvDownloadController extends Controller
 {
-    public function downloadCsv()
+   public function downloadCsv()
     {
-        $contacts = Contact::all();
-        $csvHeader = [
-            'id',
-            'category_id',
-            'last_name',
-            'first_name',
-            'gender',
-            'email',
-            'tel',
-            'detail',
-            'address',
-            'building',
-            'created_at',
-            'updated_at',
-        ];
+        $fileName = 'contacts.csv';
 
-        $response = new StreamedResponse(function () use ($csvHeader, $contacts) {
+        $response = new StreamedResponse(function () {
             $handle = fopen('php://output', 'w');
 
-            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF)); // BOMを付けてUTF-8を明示
-            fputcsv($handle, $csvHeader);
+            // CSVヘッダー行（仕様書に合わせて必要な項目を並べる）
+            fputcsv($handle, [
+                'ID',
+                '姓',
+                '名',
+                '性別',
+                'メールアドレス',
+                '電話番号',
+                '住所',
+                '建物名',
+                'お問い合わせの種類',
+                'お問い合わせ内容',
+                '登録日時'
+            ]);
+
+            // データ取得（全件）
+            $contacts = Contact::with('category')->get();
 
             foreach ($contacts as $contact) {
-                $row = array_map(function ($value) {
-                    return mb_convert_encoding($value, 'UTF-8', 'auto');
-                }, $contact->toArray());
-                fputcsv($handle, $row);
+                fputcsv($handle, [
+                    $contact->id,
+                    $contact->last_name,
+                    $contact->first_name,
+                    ['','男性','女性','その他'][$contact->gender],
+                    $contact->email,
+                    $contact->tel,
+                    $contact->address,
+                    $contact->building,
+                    $contact->category->content,
+                    $contact->detail,
+                    $contact->created_at,
+                ]);
             }
 
             fclose($handle);
-        }, Response::HTTP_OK, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="contacts.csv"',
-        ]);
+        });
+
+        // CSVダウンロードのレスポンス設定
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $fileName . '"');
 
         return $response;
     }

@@ -19,11 +19,11 @@ class ContactFactory extends Factory
             'first_name' => $this->faker->firstName(),
             'last_name' => $this->faker->lastName(),
             'gender' => $this->faker->numberBetween(1, 3),
-            'email' => $this->faker->safeEmail(),
-            'tel' => $this->faker->phoneNumber(),
-            'address' => $this->faker->city(),
-            'building' => $this->faker->text(5),
-            'detail' => $this->faker->sentence()
+            'email' => $this->faker->unique()->safeEmail(),
+            'tel' => $this->faker->numerify('0##########'), // ハイフンなし
+            'address' => $this->faker->address(), // 自然な住所
+            'building' => $this->faker->secondaryAddress(), // 自然な建物名
+            'detail' => $this->faker->realText(50), // 50文字程度の文章
         ];
     }
 }

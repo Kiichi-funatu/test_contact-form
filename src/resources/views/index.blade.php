@@ -103,18 +103,19 @@
                     <th class="column-name">お問い合わせの種類<span class="attention">※</span></th>
                     <td class="table-cell">
                         <div id="category">
-                            <select class="input-area category-select" name="category_id" value="{{old('category_id')}}">
-                                <option selected disabled>選択してください</option>
-                                <option value="商品のお届けについて">1.商品のお届けについて</option>
-                                <option value="商品の交換について">2.商品の交換について</option>
-                                <option value="商品トラブル">3.商品トラブル</option>
-                                <option value="ショップへのお問い合わせ">4.ショップへのお問い合わせ</option>
-                                <option value="その他">5.その他</option>
+                            <select class="input-area category-select" name="category_id">
+                                <option value="" disabled selected>選択してください</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}"
+                                        {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                        {{ $category->content }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="error-message">
                             @error('category_id')
-                            {{$message}}
+                                {{ $message }}
                             @enderror
                         </div>
                     </td>
