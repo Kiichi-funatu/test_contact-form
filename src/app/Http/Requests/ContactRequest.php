@@ -24,19 +24,25 @@ class ContactRequest extends FormRequest
     public function rules()
     {
          return [
-            "last_name" => ['required'],
-            "first_name" => ['required'],
-            "gender" => ['required'],
+           "last_name" => ['required', 'string', 'max:255'],
+            "first_name" => ['required', 'string', 'max:255'],
+
+            "gender" => ['required', 'integer', 'between:1,3'],
+
             "email" => ['required', 'email'],
 
-            // 電話番号（仕様書準拠）
+            // 電話番号（3分割・仕様書準拠）
             "front-tel" => ['required', 'regex:/^[0-9]+$/', 'max:5'],
             "middle-tel" => ['required', 'regex:/^[0-9]+$/', 'max:5'],
             "back-tel" => ['required', 'regex:/^[0-9]+$/', 'max:5'],
 
-            "address" => ['required'],
-            "category_id" => ['required'],
-            "detail" => ['required', 'max:120'],
+            "address" => ['required', 'string'],
+            
+            "building" => ['nullable', 'string'],
+
+            "category_id" => ['required', 'integer', 'between:1,5'],
+
+            "detail" => ['required', 'string', 'max:120'],
         ];
 
 
@@ -58,9 +64,9 @@ class ContactRequest extends FormRequest
             "middle-tel.required" => "電話番号を入力してください",
             "back-tel.required" => "電話番号を入力してください",
 
-            "front-tel.regex" => "電話番号は 半角英数字で入力してください",
-            "middle-tel.regex" => "電話番号は 半角英数字で入力してください",
-            "back-tel.regex" => "電話番号は 半角英数字で入力してください",
+            "front-tel.regex" => "電話番号は 半角数字で入力してください",
+            "middle-tel.regex" => "電話番号は 半角数字で入力してください",
+            "back-tel.regex" => "電話番号は 半角数字で入力してください",
 
             "front-tel.max" => "電話番号は 5桁まで数字で入力してください",
             "middle-tel.max" => "電話番号は 5桁まで数字で入力してください",
@@ -73,7 +79,5 @@ class ContactRequest extends FormRequest
             "detail.required" => "お問い合わせ内容を入力してください",
             "detail.max" => "お問い合わせ内容は120文字以内で入力してください",
         ];
-
-
     }
 }

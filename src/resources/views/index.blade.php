@@ -35,18 +35,18 @@
                 <tr class="table-line">
                     <th class="column-name">性別<span class="attention">※</span></th>
                     <td id="gender" class="table-cell">
-                        <div class="radio-item">
-                            <input class="input-area gender-radio" type="radio" name="gender" value="男性" checked>
+                       <div class="radio-item">
+                            <input class="input-area gender-radio" type="radio" name="gender" value="1" checked>
                             <label>男性</label>
                         </div>
                         <div class="radio-item">
-                            <input class="input-area gender-radio" type="radio" name="gender" value="女性">
+                            <input class="input-area gender-radio" type="radio" name="gender" value="2">
                             <label>女性</label>
                         </div>
                         <div class="radio-item">
-                            <input class="input-area gender-radio" type="radio" name="gender" value="その他">
+                            <input class="input-area gender-radio" type="radio" name="gender" value="3">
                             <label>その他</label>
-                        </div></br>
+                        </div>
                         <div class="error-message">
                             @error('gender')
                             {{$message}}

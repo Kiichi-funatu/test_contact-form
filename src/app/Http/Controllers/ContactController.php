@@ -18,35 +18,40 @@ class ContactController extends Controller
     }
 
     public function confirm(ContactRequest $request)
-    {
-        $contact = $request->all();
+{
+    // 電話番号の結合（仕様書：10〜11桁）
+    $entireTel = $request->input('front-tel')
+                . $request->input('middle-tel')
+                . $request->input('back-tel');
 
-        // 氏名（表示用）
-        $fullName = $request->last_name . ' ' . $request->first_name;
-
-        // 電話番号（表示用）
-        $entireTel = $request->input('front-tel')
-                    . $request->input('middle-tel')
-                    . $request->input('back-tel');
-
-        // 性別（表示用）
-        $genderText = [
-            1 => '男性',
-            2 => '女性',
-            3 => 'その他'
-        ][$request->gender];
-
-        // カテゴリー名（表示用）
-        $category = Category::find($request->category_id);
-
-        return view('confirm', [
-            'contact' => $contact,
-            'fullName' => $fullName,
-            'entireTel' => $entireTel,
-            'genderText' => $genderText,
-            'categoryName' => $category->content
-        ]);
+    // 電話番号の合計桁数チェック
+    if (strlen($entireTel) < 10 || strlen($entireTel) > 11) {
+        return back()
+            ->withErrors(['tel' => '電話番号は10桁または11桁で入力してください'])
+            ->withInput();
     }
+
+    // 氏名（表示用）
+    $fullName = $request->last_name . ' ' . $request->first_name;
+
+    // 性別（表示用）
+    $genderText = [
+        1 => '男性',
+        2 => '女性',
+        3 => 'その他'
+    ][$request->gender];
+
+    // カテゴリー名（表示用）
+    $category = Category::find($request->category_id);
+
+    return view('confirm', [
+        'fullName' => $fullName,
+        'entireTel' => $entireTel,
+        'genderText' => $genderText,
+        'categoryName' => $category->content,
+        'contact' => $request->validated(), // 必要なら validated を渡す
+    ]);
+}
 
     public function store(Request $request)
     {
@@ -81,51 +86,54 @@ class ContactController extends Controller
     public function admin()
     {
         $contacts = Contact::paginate(7);
+        $categories = Category::all();   
 
         foreach ($contacts as $contact) {
-            $contact->gender = ['','男性','女性','その他'][$contact->gender];
-        }
+        $contact->gender = ['','男性','女性','その他'][$contact->gender];
+    }
 
-        return view('admin', compact('contacts'));
+        return view('admin', compact('contacts', 'categories'));
+
     }
 
     public function search(Request $request)
-    {
-        $query = Contact::query();
+{
+    $query = Contact::query();
 
-        // 名前（姓・名・フルネーム）
-        if ($request->filled('name_email_filter')) {
-            $filter = Normalizer::normalize($request->name_email_filter, Normalizer::FORM_C);
+    // 名前（姓・名・フルネーム）
+    if ($request->filled('name_email_filter')) {
+        $filter = Normalizer::normalize($request->name_email_filter, Normalizer::FORM_C);
 
-            $query->where(function ($q) use ($filter) {
-                $q->whereRaw("CONCAT(last_name, first_name) LIKE ?", ["%{$filter}%"])
-                  ->orWhere('email', 'like', "%{$filter}%");
-            });
-        }
-
-        // 性別
-        if ($request->filled('gender_dropdown')) {
-            $query->where('gender', $request->gender_dropdown);
-        }
-
-        // カテゴリー
-        if ($request->filled('category_dropdown')) {
-            $query->where('category_id', $request->category_dropdown);
-        }
-
-        // 日付
-        if ($request->filled('date_calendar')) {
-            $query->whereDate('created_at', $request->date_calendar);
-        }
-
-        $contacts = $query->paginate(7);
-
-        foreach ($contacts as $contact) {
-            $contact->gender = ['','男性','女性','その他'][$contact->gender];
-        }
-
-        return view('admin', compact('contacts'));
+        $query->where(function ($q) use ($filter) {
+            $q->whereRaw("CONCAT(last_name, first_name) LIKE ?", ["%{$filter}%"])
+              ->orWhere('email', 'like', "%{$filter}%");
+        });
     }
+
+    // 性別
+    if ($request->gender_dropdown && $request->gender_dropdown != 0) {
+        $query->where('gender', $request->gender_dropdown);
+    }
+
+    // カテゴリー（←修正）
+    if ($request->category_dropdown && $request->category_dropdown != 0) {
+        $query->where('category_id', $request->category_dropdown);
+    }
+
+    // 日付
+    if ($request->filled('date_calendar')) {
+        $query->whereDate('created_at', $request->date_calendar);
+    }
+
+    $contacts = $query->paginate(7);
+    $categories = Category::all();
+
+    foreach ($contacts as $contact) {
+        $contact->gender = ['','男性','女性','その他'][$contact->gender];
+    }
+
+    return view('admin', compact('contacts', 'categories'));
+}
 
     public function reset()
     {

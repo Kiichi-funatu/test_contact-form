@@ -35,12 +35,10 @@
             </div>
             <div class="category_id">
                 <select name="category_dropdown" class="category_dropdown">
-                    <option disabled selected>お問い合わせ種類</option>
-                    <option value="1">商品のお届けについて</option>
-                    <option value="2">商品の交換について</option>
-                    <option value="3">商品トラブル</option>
-                    <option value="4">ショップへのお問い合わせ</option>
-                    <option value="5">その他</option>
+                    <option value="0">全て</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}">{{ $category->content }}</option>
+                    @endforeach
                 </select>
             </div>
             <div class="date">
@@ -73,7 +71,9 @@
                 <td class="gender_get{{$contact['id']}} gender_get">{{$contact['gender']}}</td>
                 <td class="email_get{{$contact['id']}} email_get">{{$contact['email']}}</td>
                 <td class="category_get{{$contact['id']}} category_get">{{$contact->category->getCategory()}}</td>
-                <td class="created_get{{$contact['id']}} created_get"><input type="hidden" value="{{$contact['created_at']}}"></td>
+                <td class="created_get">
+                    {{ $contact['created_at']->format('Y-m-d') }}
+                </td>
                 <td class="detail_get">
                     <div class="detail-view" id="{{$contact['id']}}">
                         詳細
