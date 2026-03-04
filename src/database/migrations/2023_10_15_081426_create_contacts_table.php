@@ -26,7 +26,7 @@ class CreateContactsTable extends Migration
     $table->text('detail');                      // text
     $table->timestamps();                        // created_at / updated_at
 
-    // 外部キー
+    // 外部
     $table->foreign('category_id')
           ->references('id')
           ->on('categories')
