@@ -20,7 +20,6 @@
 ## 使用技術(実行環境)
 - PHP 8.2.11
 - Laravel 8.83.8
-- jquery 3.7.1.min.js
 - MySQL 8.0.26
 - nginx 1.21.1
 
