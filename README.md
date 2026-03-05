@@ -1,8 +1,16 @@
-# test_contact-form
+# # アプリケーション名
+お問い合わせフォームアプリ（Laravel × Docker）
+
+## 概要
+ユーザーが問い合わせ内容を送信し、管理者が内容を確認できるシンプルな問い合わせ管理アプリです。
+
+---
 
 ## 環境構築
-### Dockerビルド
+
+### 1. リポジトリのクローン
 - git clone git@github.com:yukit4mu/test_contact-form.git
+### Dockerビルド
 - docker-compose up -d --build
 ### Laravel環境構築
 - docker-compose exec php bash
@@ -20,7 +28,6 @@
 ## 使用技術(実行環境)
 - PHP 8.2.11
 - Laravel 8.83.8
-- jquery 3.7.1.min.js
 - MySQL 8.0.26
 - nginx 1.21.1
 
