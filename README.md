@@ -9,7 +9,7 @@
 ## 環境構築
 
 ### 1. リポジトリのクローン
-- git clone git@github.com:yukit4mu/test_contact-form.git
+- git clone https://github.com/Kiichi-funatu/test_contact-form.git
 ### 2. Dockerビルド
 - docker-compose up -d --build
 ### 3. Laravel環境構築
