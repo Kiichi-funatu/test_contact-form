@@ -24,8 +24,8 @@ class ContactRequest extends FormRequest
     public function rules()
     {
          return [
-           "last_name" => ['required', 'string', 'max:255'],
-            "first_name" => ['required', 'string', 'max:255'],
+           "last_name" => ['required', 'string', 'max:8'],
+            "first_name" => ['required', 'string', 'max:8'],
 
             "gender" => ['required', 'integer', 'between:1,3'],
 
