@@ -40,6 +40,15 @@
                 @enderror
             </div>
         </div>
+        <div class="register-info">
+            <p>確認用パスワード</p>
+            <input name="password_confirmation" type="password" placeholder="確認用パスワード">
+            <div class="error-message">
+                @error('password_confirmation')
+                {{$message}}
+                @enderror
+            </div>
+        </div>
         <div class="register-button">
             <button type="submit">登録</button>
         </div>
