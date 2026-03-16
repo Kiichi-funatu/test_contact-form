@@ -44,7 +44,7 @@ Route::get('/reset', [ContactController::class, 'reset']);
 Route::post('/delete', [ContactController::class, 'delete']);
 
 // ユーザ登録（PG08）
-Route::get('/register', [AuthController::class, 'registerView']);
+
 
 // ログイン（PG09）
 Route::get('/login', [AuthController::class, 'loginView']);
