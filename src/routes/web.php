@@ -47,7 +47,7 @@ Route::post('/delete', [ContactController::class, 'delete']);
 
 
 // ログイン（PG09）
-Route::get('/login', [AuthController::class, 'loginView']);
+
 
 // エクスポート（PG11）
 Route::get('/export', [CsvDownloadController::class, 'downloadCsv']);
